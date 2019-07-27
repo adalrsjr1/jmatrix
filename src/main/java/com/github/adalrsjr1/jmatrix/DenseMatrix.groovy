@@ -118,8 +118,6 @@ class DenseMatrix implements Matrix<Number> {
         }
     }
     
-    def putAt
-
     boolean equals(Matrix other) {
         iteration(N_CORES) { matrix, i, j ->
             if(matrix[i][j] != other[i][j]) {
