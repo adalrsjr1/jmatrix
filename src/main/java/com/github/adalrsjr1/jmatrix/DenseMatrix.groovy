@@ -1,60 +1,84 @@
 package com.github.adalrsjr1.jmatrix
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicInteger
+
 class DenseMatrix implements Matrix<Number> {
+    private static final N_CORES = Runtime.getRuntime().availableProcessors()
+    private final ExecutorService tPool = Executors.newFixedThreadPool(N_CORES)
 
     private int rows = 0
     private int cols = 0
-    
-    private Number[][] values
-    
+
+    private volatile Number[][] values
+
     static Matrix of(int rows, int cols) {
         new DenseMatrix(rows, cols)
     }
-    
+
     private DenseMatrix(int rows, int cols) {
         this.rows = rows
         this.cols = cols
         values = new Number[rows][cols]
         initValues()
     }
-    
+
     private void initValues() {
-        for(int i = 0; i < height(); i++) {
-            Arrays.fill(values[i], 0)
-        }
+        initValues(values, 0, { v, s -> s})
     }
-    
+
     static Matrix of(List values) {
         new DenseMatrix(values as Number[][], 0, values.size(), values[0].size(), { v, s -> v + s})
     }
-    
+
     static Matrix of(Object[][] values) {
-        new DenseMatrix(values as Number[][], 0, values.length, values[0].length, { v, s -> v + s})  
+        new DenseMatrix(values as Number[][], 0, values.length, values[0].length, { v, s -> v + s})
     }
-    
+
     private DenseMatrix(Number[][] newValues, Number scalar, int rows, int cols, Closure closure) {
         this.rows = rows
         this.cols = cols
         this.values = new Number[rows][cols]
         initValues(newValues, scalar, closure)
     }
-    
+
     private void initValues(Number[][] values, Number scalar, Closure closure) {
-        for(int i = 0; i < height(); i++) {
-            for(int j = 0; j < width(); j++) {
-                this.values[i][j] = closure(values[i][j], scalar)
-            }
+        iteration(N_CORES) { matrix, i, j ->
+            matrix[i][j] = closure(values[i][j], scalar)
         }
     }
-    
+
+    void iteration(int nCores, Closure closure) {
+        def rangeRow = height() % nCores == 0 ? height() / nCores : height().intdiv(nCores) + 1
+
+        CountDownLatch latch = new CountDownLatch(nCores)
+        AtomicInteger t = new AtomicInteger(0)
+
+        for(int k = 0; k < nCores; k++) {
+            tPool.execute({
+                int n = t.getAndIncrement()
+                for(int i = n * rangeRow; i < (n+1) * rangeRow && i < height(); i++) {
+                    for(int j = 0; j < width(); j++) {
+                        closure(this, i, j)
+                    }
+                }
+                latch.countDown()
+            })
+        }
+        latch.await()
+    }
+
     static of(Matrix matrix) {
         new DenseMatrix(matrix)
     }
-        
+
     private DenseMatrix(Matrix matrix) {
         this(matrix.height(), matrix.width())
     }
-    
+
     @Override
     int width() {
         return cols
@@ -64,19 +88,43 @@ class DenseMatrix implements Matrix<Number> {
     int height() {
         return rows
     }
-    
+
     def getAt(int i) {
-        synchronized (this) {
+        synchronized (values) {
             values[i]
         }
     }
     
+    private static class InnerArray {
+        private final Number[] array
+
+        private InnerArray(Number[] array) {
+            this.array = array
+        }
+
+        static InnerArray of(Number[] array) {
+            new InnerArray(array)
+        }
+
+        def getAt(a) {
+            synchronized (array[a]) {
+                array[a]
+            }
+        }
+
+        def putAt(a, b) {
+            synchronized (array[a]) {
+                array[a] = b
+            }
+        }
+    }
+    
+    def putAt
+
     boolean equals(Matrix other) {
-        for(int i = 0; i < height(); i++) {
-            for(int j = 0; j < width(); j++) {
-                if(this[i][j] != other[i][j]) {
-                    return false
-                }
+        iteration(N_CORES) { matrix, i, j ->
+            if(matrix[i][j] != other[i][j]) {
+                return false
             }
         }
         return true
@@ -85,9 +133,9 @@ class DenseMatrix implements Matrix<Number> {
     @Override
     Matrix identity() {
         if(height() != width()) {
-            throw new RuntimeException("Cannot create a identity matrix from a non squared matrix")    
+            throw new RuntimeException("Cannot create a identity matrix from a non squared matrix")
         }
-        
+
         def matrix = new DenseMatrix(height(), width())
         for(int i = 0; i < height(); i++) {
             for(int j = 0; j < width(); j++) {
@@ -107,17 +155,15 @@ class DenseMatrix implements Matrix<Number> {
     @Override
     Matrix plus(Matrix other) {
         checkingForEqualDimensions(this, other)
-        
+
         def newMatrix = DenseMatrix.of(height(), width())
-        for(int i = 0; i < height(); i++) {
-            for(int j = 0; j < width(); j++) {
-                newMatrix[i][j] = this[i][j] + other[i][j]
-            }
+        iteration(N_CORES) { matrix, i, j ->
+            newMatrix[i][j] = matrix[i][j] + other[i][j]
         }
-        
+
         return newMatrix
     }
-    
+
     private void checkingForEqualDimensions(Matrix m1, Matrix m2) {
         if(m1.height() != m2.height() || m1.width() != m2.width()) {
             throw new RuntimeException("Both matrix should have same dimensions")
@@ -132,14 +178,12 @@ class DenseMatrix implements Matrix<Number> {
     @Override
     Matrix minus(Matrix other) {
         checkingForEqualDimensions(this, other)
-        
+
         def newMatrix = DenseMatrix.of(height(), width())
-        for(int i = 0; i < height(); i++) {
-            for(int j = 0; j < width(); j++) {
-                newMatrix[i][j] = this[i][j] - other[i][j]
-            }
+        iteration(N_CORES) { matrix, i, j ->
+            newMatrix[i][j] = matrix[i][j] - other[i][j]
         }
-        
+
         return newMatrix
     }
 
@@ -151,7 +195,7 @@ class DenseMatrix implements Matrix<Number> {
     @Override
     Matrix multiply(Matrix other) {
         checkingDimensionsForMultiplication(this, other)
-        
+
         int n = height()
         int m = other.width()
 
@@ -164,10 +208,10 @@ class DenseMatrix implements Matrix<Number> {
                 }
             }
         }
-        
+
         return newMatrix
     }
-    
+
     private void checkingDimensionsForMultiplication(Matrix m1, Matrix m2) {
         if(!(m1.width() == m2.height())) {
             throw new RuntimeException("The M1's height should be equals to M2's width")
@@ -202,7 +246,7 @@ class DenseMatrix implements Matrix<Number> {
 
         return newMatrix
     }
-    
+
     private Matrix gaussJordanExpandedMatrix(Matrix matrix) {
         int height = matrix.height()
         int width = matrix.width()
@@ -264,7 +308,7 @@ class DenseMatrix implements Matrix<Number> {
             diagonal = diagonalOrdered(matrix, height)
         }
     }
-    
+
     private PriorityQueue diagonalOrdered(Matrix matrix, int height) {
         Comparator comparator = new Comparator() {
                     public int compare(def v1, def v2) {
@@ -284,11 +328,11 @@ class DenseMatrix implements Matrix<Number> {
     @Override
     Matrix transpose() {
         Matrix newMatrix = DenseMatrix.of(width(), height())
-        for(int i = 0; i < height(); i++) {
-            for(int j = 0; j < width(); j++) {
-                newMatrix[j][i] = this[i][j]
-            }
+        
+        iteration(N_CORES) { matrix, i, j ->
+            newMatrix[j][i] = matrix[i][j]
         }
+        
         return newMatrix
     }
 
@@ -296,23 +340,23 @@ class DenseMatrix implements Matrix<Number> {
     double determinant() {
         throw new RuntimeException("determinant not implemented yet")
     }
-    
+
     String toString() {
         values.toString()
     }
-    
+
     String prettyToString() {
         StringBuffer sb = new StringBuffer()
-        
+
         sb.append("[\n")
         for(int i = 0; i < height(); i++) {
             def joiner = this[i].inject(new StringJoiner(", ")) { acc, value ->
                 acc.add(value.toString())
             }
             sb.append("  [")
-              .append(joiner.toString())
-              .append("]\n")
-             
+                    .append(joiner.toString())
+                    .append("]\n")
+
         }
         sb.append("]")
         return sb.toString()

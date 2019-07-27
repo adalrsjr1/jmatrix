@@ -3,6 +3,8 @@ package com.github.adalrsjr1.testing.jmatrix
 import com.github.adalrsjr1.jmatrix.DenseMatrix
 import com.github.adalrsjr1.jmatrix.Matrix
 import groovy.test.GroovyAssert
+import java.util.concurrent.CountDownLatch
+import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 
 class TestDenseMatrix extends GroovyAssert {
@@ -347,4 +349,24 @@ class TestDenseMatrix extends GroovyAssert {
         [20, -15, -4], 
         [-5, 4, 1]]), m, 0.1)
     }
+    
+//    @RepeatedTest(5)
+//    void testParallelIterationLargeSquareMatrix() {
+//        Matrix matrix = DenseMatrix.of(10000, 10000)
+//        int scalar  = 1
+//        
+//        matrix.iteration(4, { v, i, j ->
+//            v[i][j] = scalar
+//        })
+//    }
+//    
+//    @RepeatedTest(5)
+//    void testIterationLargeSquareMatrix() {
+//        Matrix matrix = DenseMatrix.of(10000, 10000)
+//        int scalar  = 1
+//        
+//        matrix.iteration(1, { v, i, j ->
+//            v[i][j] = scalar
+//        })
+//    }
 }
