@@ -3,7 +3,6 @@ package com.github.adalrsjr1.jmatrix
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicInteger
 
 class DenseMatrix implements Matrix<Number> {
