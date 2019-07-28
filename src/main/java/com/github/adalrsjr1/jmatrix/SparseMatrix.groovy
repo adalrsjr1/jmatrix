@@ -73,19 +73,31 @@ class SparseMatrix implements Matrix<Number> {
 
     @Override
     public int width() {
-        return 0
+        return this.cols
     }
     @Override
     public int height() {
-        return 0
+        return this.rows
     }
     @Override
     public Matrix identity() {
+        if(height() != width()) {
+            throw new RuntimeException("Cannot create a identity matrix from a non squared matrix")
+        }
 
-        return null
+        def matrix = new SparseMatrix(height(), width())
+        for(int i = 0; i < height(); i++) {
+            matrix[i][i] = 1
+        }
+        return matrix
     }
     @Override
     public Object getAt(int i) {
+        def array = InnerArray.of(values, i)
+        return array
+    }
+    
+    public Object putAt(int i, Number value) {
         def array = InnerArray.of(values, i)
         return array
     }
@@ -104,8 +116,26 @@ class SparseMatrix implements Matrix<Number> {
         }
 
         def getAt(j) {
-            map[new Tuple(index,j)]
+            map.getOrDefault(new Tuple(index,j), 0)
         }
+        
+        def putAt(j, value) {
+            if(value == 0) {
+                return
+            }
+            map[new Tuple(index, j)] = value
+        }
+    }
+    
+    boolean equals(Matrix other) {
+        for(int i = 0; i < height(); i++) {
+            for(int j = 0; j < width(); j++) {
+                if(this[i][j] != other[i][j]) {
+                    return false
+                }
+            }
+        }
+        return true
     }
     
     @Override

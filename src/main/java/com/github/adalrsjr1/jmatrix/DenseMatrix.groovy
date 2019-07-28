@@ -96,7 +96,7 @@ class DenseMatrix implements Matrix<Number> {
             values[i]
         }
     }
-    
+
     boolean equals(Matrix other) {
         iteration() { matrix, i, j ->
             if(matrix[i][j] != other[i][j]) {
@@ -114,11 +114,7 @@ class DenseMatrix implements Matrix<Number> {
 
         def matrix = new DenseMatrix(height(), width())
         for(int i = 0; i < height(); i++) {
-            for(int j = 0; j < width(); j++) {
-                if(i == j) {
-                    matrix[i][j] = 1
-                }
-            }
+            matrix[i][i] = 1
         }
         return matrix
     }
@@ -304,11 +300,11 @@ class DenseMatrix implements Matrix<Number> {
     @Override
     Matrix transpose() {
         Matrix newMatrix = DenseMatrix.of(width(), height())
-        
+
         iteration() { matrix, i, j ->
             newMatrix[j][i] = matrix[i][j]
         }
-        
+
         return newMatrix
     }
 

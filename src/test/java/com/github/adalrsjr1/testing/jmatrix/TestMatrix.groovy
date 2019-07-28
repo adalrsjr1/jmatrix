@@ -130,8 +130,8 @@ class TestMatrix extends GroovyAssert {
     @ParameterizedTest
     @ValueSource(classes = [DenseMatrix, SparseMatrix])
     void validIdentity(Class matrixClass) {
-        def matrix = matrixClass.of(2,2)
-        assert matrixClass.of([[1,0], [0,1]]) == matrix.identity()
+        def matrix = matrixClass.of(3,3)
+        assert matrixClass.of([[1,0, 0], [0,1,0], [0,0,1]]) == matrix.identity()
     }
 
     @ParameterizedTest
@@ -391,33 +391,33 @@ class TestMatrix extends GroovyAssert {
         }
     }
     
-    @RepeatedTest(5)
-    void testIterationLargeSquareDenseMatrix() {
-        Matrix matrix = DenseMatrix.of(50, 50)
-        int scalar  = 1
-        
-        matrix.iteration() { v, i, j ->
-            v[i][j] = scalar
-        }
-    }
-    
-    @RepeatedTest(5)
-    void testParallelIterationLargeSquareSparseMatrix() {
-        Matrix matrix = SparseMatrix.of(50, 50)
-        int scalar  = 1
-        
-        matrix.iteration(4) { v, i, j ->
-            v[i][j] = scalar
-        }
-    }
-    
-    @RepeatedTest(5)
-    void testIterationLargeSquareSparseMatrix() {
-        Matrix matrix = SparseMatrix.of(50, 50)
-        int scalar  = 1
-        
-        matrix.iteration() { v, i, j ->
-            v[i][j] = scalar
-        }
-    }
+//    @RepeatedTest(5)
+//    void testIterationLargeSquareDenseMatrix() {
+//        Matrix matrix = DenseMatrix.of(50, 50)
+//        int scalar  = 1
+//        
+//        matrix.iteration() { v, i, j ->
+//            v[i][j] = scalar
+//        }
+//    }
+//    
+//    @RepeatedTest(5)
+//    void testParallelIterationLargeSquareSparseMatrix() {
+//        Matrix matrix = SparseMatrix.of(50, 50)
+//        int scalar  = 1
+//        
+//        matrix.iteration(4) { v, i, j ->
+//            v[i][j] = scalar
+//        }
+//    }
+//    
+//    @RepeatedTest(5)
+//    void testIterationLargeSquareSparseMatrix() {
+//        Matrix matrix = SparseMatrix.of(50, 50)
+//        int scalar  = 1
+//        
+//        matrix.iteration() { v, i, j ->
+//            v[i][j] = scalar
+//        }
+//    }
 }
