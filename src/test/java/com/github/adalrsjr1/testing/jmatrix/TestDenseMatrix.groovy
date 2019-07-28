@@ -350,23 +350,23 @@ class TestDenseMatrix extends GroovyAssert {
         [-5, 4, 1]]), m, 0.1)
     }
     
-//    @RepeatedTest(5)
-//    void testParallelIterationLargeSquareMatrix() {
-//        Matrix matrix = DenseMatrix.of(10000, 10000)
-//        int scalar  = 1
-//        
-//        matrix.iteration(4, { v, i, j ->
-//            v[i][j] = scalar
-//        })
-//    }
-//    
-//    @RepeatedTest(5)
-//    void testIterationLargeSquareMatrix() {
-//        Matrix matrix = DenseMatrix.of(10000, 10000)
-//        int scalar  = 1
-//        
-//        matrix.iteration(1, { v, i, j ->
-//            v[i][j] = scalar
-//        })
-//    }
+    @RepeatedTest(5)
+    void testParallelIterationLargeSquareMatrix() {
+        Matrix matrix = DenseMatrix.of(50, 50)
+        int scalar  = 1
+        
+        matrix.iteration(4) { v, i, j ->
+            v[i][j] = scalar
+        }
+    }
+    
+    @RepeatedTest(5)
+    void testIterationLargeSquareMatrix() {
+        Matrix matrix = DenseMatrix.of(50, 50)
+        int scalar  = 1
+        
+        matrix.iteration() { v, i, j ->
+            v[i][j] = scalar
+        }
+    }
 }

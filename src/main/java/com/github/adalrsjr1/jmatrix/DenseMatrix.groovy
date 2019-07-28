@@ -6,8 +6,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 class DenseMatrix implements Matrix<Number> {
-    private static final N_CORES = Runtime.getRuntime().availableProcessors()
-    private final ExecutorService tPool = Executors.newFixedThreadPool(N_CORES)
+    private static int N_CORES = Runtime.getRuntime().availableProcessors()
+    private static final ExecutorService T_POOL = Executors.newFixedThreadPool(2*N_CORES)
 
     private int rows = 0
     private int cols = 0
@@ -26,7 +26,9 @@ class DenseMatrix implements Matrix<Number> {
     }
 
     private void initValues() {
-        initValues(values, 0, { v, s -> s})
+        for(int i = 0; i < height(); i++) {
+            Arrays.fill(values[i], 0)
+        }
     }
 
     static Matrix of(List values) {
@@ -45,19 +47,20 @@ class DenseMatrix implements Matrix<Number> {
     }
 
     private void initValues(Number[][] values, Number scalar, Closure closure) {
-        iteration(N_CORES) { matrix, i, j ->
+        iteration() { matrix, i, j ->
             matrix[i][j] = closure(values[i][j], scalar)
         }
     }
 
-    void iteration(int nCores, Closure closure) {
+    void iteration(int cores = 1, Closure closure) {
+        int nCores = height() > 50 && width() > 50 ? N_CORES : cores
         def rangeRow = height() % nCores == 0 ? height() / nCores : height().intdiv(nCores) + 1
 
         CountDownLatch latch = new CountDownLatch(nCores)
         AtomicInteger t = new AtomicInteger(0)
 
         for(int k = 0; k < nCores; k++) {
-            tPool.execute({
+            T_POOL.execute({
                 int n = t.getAndIncrement()
                 for(int i = n * rangeRow; i < (n+1) * rangeRow && i < height(); i++) {
                     for(int j = 0; j < width(); j++) {
@@ -89,37 +92,13 @@ class DenseMatrix implements Matrix<Number> {
     }
 
     def getAt(int i) {
-        synchronized (values) {
+        synchronized (values[i]) {
             values[i]
         }
     }
     
-    private static class InnerArray {
-        private final Number[] array
-
-        private InnerArray(Number[] array) {
-            this.array = array
-        }
-
-        static InnerArray of(Number[] array) {
-            new InnerArray(array)
-        }
-
-        def getAt(a) {
-            synchronized (array[a]) {
-                array[a]
-            }
-        }
-
-        def putAt(a, b) {
-            synchronized (array[a]) {
-                array[a] = b
-            }
-        }
-    }
-    
     boolean equals(Matrix other) {
-        iteration(N_CORES) { matrix, i, j ->
+        iteration() { matrix, i, j ->
             if(matrix[i][j] != other[i][j]) {
                 return false
             }
@@ -154,7 +133,7 @@ class DenseMatrix implements Matrix<Number> {
         checkingForEqualDimensions(this, other)
 
         def newMatrix = DenseMatrix.of(height(), width())
-        iteration(N_CORES) { matrix, i, j ->
+        iteration() { matrix, i, j ->
             newMatrix[i][j] = matrix[i][j] + other[i][j]
         }
 
@@ -177,7 +156,7 @@ class DenseMatrix implements Matrix<Number> {
         checkingForEqualDimensions(this, other)
 
         def newMatrix = DenseMatrix.of(height(), width())
-        iteration(N_CORES) { matrix, i, j ->
+        iteration() { matrix, i, j ->
             newMatrix[i][j] = matrix[i][j] - other[i][j]
         }
 
@@ -326,7 +305,7 @@ class DenseMatrix implements Matrix<Number> {
     Matrix transpose() {
         Matrix newMatrix = DenseMatrix.of(width(), height())
         
-        iteration(N_CORES) { matrix, i, j ->
+        iteration() { matrix, i, j ->
             newMatrix[j][i] = matrix[i][j]
         }
         
