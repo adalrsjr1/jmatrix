@@ -8,6 +8,8 @@ interface Matrix<T> {
     
     Matrix identity()
     
+    def getAt(int i)
+    
     Matrix plus(T scalar)
 
     Matrix plus(Matrix other) 
@@ -29,4 +31,6 @@ interface Matrix<T> {
     Matrix transpose()
     
     double determinant()
+    
+    String prettyToString() 
 }
