@@ -5,14 +5,18 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
-abstract class BaseMatrix implements Matrix<Number> {
+abstract class BaseMatrix<T> implements Matrix<Number> {
     protected static int N_CORES = Runtime.getRuntime().availableProcessors()
     protected static final ExecutorService T_POOL = Executors.newFixedThreadPool(2*N_CORES)
 
     protected int rows = 0
     protected int cols = 0
     
-    protected volatile def values
+    protected volatile T values
+    
+    T getValues() {
+        values
+    }
     
     static Matrix of(Class clazz, int rows, int cols) {
         if(SparseMatrix == clazz) {

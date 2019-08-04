@@ -4,17 +4,18 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
+import groovy.transform.CompileStatic
 
-final class SparseMatrix extends BaseMatrix {
+final class SparseMatrix extends BaseMatrix<Map<Tuple, Number>> {
     static Matrix of(int rows, int cols) {
-        new SparseMatrix([:], 0, rows, cols, { v, s -> v + s })
+        new SparseMatrix([:], 0, rows, cols, { int v, int s -> v + s })
     }
 
     static Matrix of(List values) {
-        new SparseMatrix(matrixListToMap(values), 0, values.size(), values[0].size(), { v, s -> v + s})
+        new SparseMatrix(matrixListToMap(values), 0, values.size(), values[0].size(), { int v, int s -> v + s })
     }
 
-    static private Map<Tuple, Number> matrixListToMap(def values) {
+    static private Map<Tuple, Number> matrixListToMap(List<List> values) {
         def map = [:]
         for(int i = 0; i < values.size(); i++) {
             for(int j = 0; j < values[0].size(); j++) {
@@ -28,7 +29,7 @@ final class SparseMatrix extends BaseMatrix {
     }
 
     static Matrix of(Number[][] values) {
-        new SparseMatrix(matrixListToMap(values), 0, values.size(), values[0].size(), { v, s -> v + s})
+        new SparseMatrix(matrixListToMap(values), 0, values.size(), values[0].size(), { int v, int s -> v + s })
     }
 
     static Matrix of(Map<Tuple, Number> newValues, Number scalar, int rows, int cols, Closure closure) {
@@ -50,7 +51,7 @@ final class SparseMatrix extends BaseMatrix {
     }
 
     static of(Matrix matrix) {
-        of(matrix.values, 0, matrix.height(), matrix.width(), { s, v -> 0 })
+        of(matrix.values, 0, matrix.height(), matrix.width(), { int v, int s -> v + s })
     }
 
     @Override

@@ -379,41 +379,41 @@ class TestMatrix extends GroovyAssert {
     
     @RepeatedTest(5)
     void testParallelIterationLargeSquareDenseMatrix() {
-        Matrix matrix = DenseMatrix.of(50, 50)
-        int scalar  = 1
+        Matrix matrix = DenseMatrix.of(10000, 10000)
+        int scalar  = 0
         
         matrix.iteration(4) { v, i, j ->
             v[i][j] = scalar
         }
     }
     
-//    @RepeatedTest(5)
-//    void testIterationLargeSquareDenseMatrix() {
-//        Matrix matrix = DenseMatrix.of(50, 50)
-//        int scalar  = 1
-//        
-//        matrix.iteration() { v, i, j ->
-//            v[i][j] = scalar
-//        }
-//    }
-//    
-//    @RepeatedTest(5)
-//    void testParallelIterationLargeSquareSparseMatrix() {
-//        Matrix matrix = SparseMatrix.of(100000, 100000)
-//        int scalar  = 0
-//        
-//        matrix.iteration(4) { v, i, j ->
-//            v[i][j] = scalar
-//        }
-//    }
-//    
-//    @RepeatedTest(5)
-//    void testIterationLargeSquareSparseMatrix() {
-//        Matrix matrix = SparseMatrix.of(100000, 100000)
-//        int scalar  = 0
-//        
-//        matrix.iteration() { v, i, j ->
-//            v[i][j] = scalar
-//        }
-//    }
+    @RepeatedTest(5)
+    void testIterationLargeSquareDenseMatrix() {
+        Matrix matrix = DenseMatrix.of(10000, 10000)
+        int scalar  = 0
+        
+        matrix.iteration() { v, i, j ->
+            v[i][j] = scalar
+        }
+    }
+    
+    @RepeatedTest(5)
+    void testParallelIterationLargeSquareSparseMatrix() {
+        Matrix matrix = SparseMatrix.of(10000, 10000)
+        int scalar  = 0
+        
+        matrix.iteration(4) { v, i, j ->
+            v[i][j] = scalar
+        }
+    }
+    
+    @RepeatedTest(5)
+    void testIterationLargeSquareSparseMatrix() {
+        Matrix matrix = SparseMatrix.of(10000, 10000)
+        int scalar  = 0
+        
+        matrix.iteration() { v, i, j ->
+            v[i][j] = scalar
+        }
+    }
 }
