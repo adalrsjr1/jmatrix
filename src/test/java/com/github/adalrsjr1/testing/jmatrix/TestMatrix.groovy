@@ -1,5 +1,6 @@
 package com.github.adalrsjr1.testing.jmatrix
 
+import com.github.adalrsjr1.jmatrix.BaseMatrix
 import com.github.adalrsjr1.jmatrix.DenseMatrix
 import com.github.adalrsjr1.jmatrix.SparseMatrix
 import com.github.adalrsjr1.jmatrix.Matrix
@@ -285,7 +286,7 @@ class TestMatrix extends GroovyAssert {
     void testGaussJordanExpansion(Class matrixClass) {
         def m = matrixClass.of(0,0)
 
-        def result = m.gaussJordanExpandedMatrix(matrixClass.of([
+        def result = (m as BaseMatrix).gaussJordanExpandedMatrix(matrixClass.of([
             [1, 2, 3],
             [4, 5, 6],
             [7, 8, 9]]))
