@@ -13,41 +13,19 @@ import org.junit.jupiter.api.Test
 class TestMatrix extends GroovyAssert {
 
     static boolean assertMatrixEquals(Matrix expected, Matrix actual, double delta=0.0) {
-
-        assertMatrixEqualsInternals(expected, actual, delta, TestMatrix.&assertion)
-    }
-
-    static private boolean assertMatrixEqualsInternals(Matrix expected, Matrix actual, double delta, Closure innerAssertion) {
         int height = expected.height()
         int width = expected.width()
 
         for(int i = 0; i < height; i++) {
             for(int j = 0; j < width; j++) {
-                if(actual[i][j] != expected[i][j]) {
-                    String str = String.format("actual(%f) != expected(%f) at [%d][%d]", actual[i][j].doubleValue(), expected[i][j].doubleValue(), i, j)
-                    if(!innerAssertion(str, actual[i][j], expected[i][j], delta)) {
-                        return false
-                    }
+                if(Math.abs(actual[i][j] - expected[i][j]) > delta) {
+                    String message = String.format("actual(%f) != expected(%f) at [%d][%d]", actual[i][j].doubleValue(), expected[i][j].doubleValue(), i, j)
+                    org.hamcrest.MatcherAssert.assertThat(message, true)
+                    return false
                 }
             }
         }
         return true
-    }
-
-    private static boolean assertion(String message, double actualValue, double expectedValue, double epsilon) {
-        boolean result = error(actualValue, expectedValue, epsilon)
-        org.hamcrest.MatcherAssert.assertThat(message, result)
-
-        return result
-    }
-
-    private static error(double d1, double d2, double epsilon = 0.01) {
-        if(d1 == d2) return true
-        Math.abs(d1-d2) <= epsilon
-    }
-
-    static boolean assertMatrixNotEquals(Matrix expected, Matrix actual, double delta=0.0) {
-        assertMatrixEqualsInternals(expected, actual, delta, TestMatrix.&assertionNot)
     }
 
     private static boolean assertionNot(String message, double actualValue, double expectedValue, double epsilon) {
@@ -126,6 +104,24 @@ class TestMatrix extends GroovyAssert {
             matrix[3][3] = 1
         }
     }
+    
+    @ParameterizedTest
+    @ValueSource(classes = [DenseMatrix, SparseMatrix])
+    void givenInvalidPositionSetValue32(Class matrixClass) {
+        def matrix = matrixClass.of(3,3)
+        shouldFail(ArrayIndexOutOfBoundsException) {
+            matrix[3][2] = 1
+        }
+    }
+    
+    @ParameterizedTest
+    @ValueSource(classes = [DenseMatrix, SparseMatrix])
+    void givenInvalidPositionSetValue23(Class matrixClass) {
+        def matrix = matrixClass.of(3,3)
+        shouldFail(ArrayIndexOutOfBoundsException) {
+            matrix[2][3] = 1
+        }
+    }
 
     @ParameterizedTest
     @ValueSource(classes = [DenseMatrix, SparseMatrix])
@@ -175,8 +171,8 @@ class TestMatrix extends GroovyAssert {
 
     @ParameterizedTest
     @ValueSource(classes = [DenseMatrix, SparseMatrix])
-    void multToScalar2(Class matrixClass) {
-        assert matrixClass.of([[6,6],[6,6]]) == matrixClass.of([[2,2],[2,2]]) * 3
+    void multToScalar3(Class matrixClass) {
+        assert matrixClass.of([[0,3],[6,9]]) == matrixClass.of([[0,1],[2,3]]) * 3
     }
 
     @ParameterizedTest
@@ -374,7 +370,6 @@ class TestMatrix extends GroovyAssert {
         ])
 
         m = m.inverse()
-        
         assertMatrixEquals(matrixClass.of([
         [-24, 18, 5],
         [20, -15, -4], 
@@ -403,8 +398,8 @@ class TestMatrix extends GroovyAssert {
 //    
 //    @RepeatedTest(5)
 //    void testParallelIterationLargeSquareSparseMatrix() {
-//        Matrix matrix = SparseMatrix.of(50, 50)
-//        int scalar  = 1
+//        Matrix matrix = SparseMatrix.of(100000, 100000)
+//        int scalar  = 0
 //        
 //        matrix.iteration(4) { v, i, j ->
 //            v[i][j] = scalar
@@ -413,8 +408,8 @@ class TestMatrix extends GroovyAssert {
 //    
 //    @RepeatedTest(5)
 //    void testIterationLargeSquareSparseMatrix() {
-//        Matrix matrix = SparseMatrix.of(50, 50)
-//        int scalar  = 1
+//        Matrix matrix = SparseMatrix.of(100000, 100000)
+//        int scalar  = 0
 //        
 //        matrix.iteration() { v, i, j ->
 //            v[i][j] = scalar

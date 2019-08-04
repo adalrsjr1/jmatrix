@@ -105,6 +105,13 @@ class DenseMatrix implements Matrix<Number> {
         }
         return true
     }
+    
+    boolean equals(Matrix other, double epsilon) {
+        iteration() { matrix, i, j ->
+            return Math.abs(this[i][j]-other[i][j]) >= epsilon
+        }
+        return true
+    }
 
     @Override
     Matrix identity() {

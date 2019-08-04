@@ -10,6 +10,10 @@ interface Matrix<T> {
     
     def getAt(int i)
     
+    boolean equals(Matrix matrix, double epsilon)
+    
+    boolean equals(Matrix matrix)
+    
     Matrix plus(T scalar)
 
     Matrix plus(Matrix other) 
