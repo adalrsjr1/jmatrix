@@ -1,15 +1,12 @@
 package com.github.adalrsjr1.testing.jmatrix
 
-import com.github.adalrsjr1.jmatrix.BaseMatrix
-import com.github.adalrsjr1.jmatrix.DenseMatrix
-import com.github.adalrsjr1.jmatrix.SparseMatrix
-import com.github.adalrsjr1.jmatrix.Matrix
-import groovy.test.GroovyAssert
-import java.util.concurrent.CountDownLatch
-import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.junit.jupiter.api.Test
+import com.github.adalrsjr1.jmatrix.BaseMatrix
+import com.github.adalrsjr1.jmatrix.DenseMatrix
+import com.github.adalrsjr1.jmatrix.Matrix
+import com.github.adalrsjr1.jmatrix.SparseMatrix
+import groovy.test.GroovyAssert
 
 class TestMatrix extends GroovyAssert {
 
@@ -375,45 +372,5 @@ class TestMatrix extends GroovyAssert {
         [-24, 18, 5],
         [20, -15, -4], 
         [-5, 4, 1]]), m, 0.1)
-    }
-    
-    @RepeatedTest(5)
-    void testParallelIterationLargeSquareDenseMatrix() {
-        Matrix matrix = DenseMatrix.of(10000, 10000)
-        int scalar  = 0
-        
-        matrix.iteration(4) { v, i, j ->
-            v[i][j] = scalar
-        }
-    }
-    
-    @RepeatedTest(5)
-    void testIterationLargeSquareDenseMatrix() {
-        Matrix matrix = DenseMatrix.of(10000, 10000)
-        int scalar  = 0
-        
-        matrix.iteration() { v, i, j ->
-            v[i][j] = scalar
-        }
-    }
-    
-    @RepeatedTest(5)
-    void testParallelIterationLargeSquareSparseMatrix() {
-        Matrix matrix = SparseMatrix.of(10000, 10000)
-        int scalar  = 0
-        
-        matrix.iteration(4) { v, i, j ->
-            v[i][j] = scalar
-        }
-    }
-    
-    @RepeatedTest(5)
-    void testIterationLargeSquareSparseMatrix() {
-        Matrix matrix = SparseMatrix.of(10000, 10000)
-        int scalar  = 0
-        
-        matrix.iteration() { v, i, j ->
-            v[i][j] = scalar
-        }
     }
 }
